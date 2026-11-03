@@ -159,6 +159,22 @@ def save_provider(provider, incoming):
     return added, kept
 
 
+def window_handle():
+    try:
+        import pygame
+        info = pygame.display.get_wm_info()
+        handle = info.get('window') or info.get('hwnd')
+        if handle:
+            return int(handle)
+    except Exception:
+        pass
+    try:
+        import ctypes
+        return int(ctypes.windll.user32.GetForegroundWindow())
+    except Exception:
+        return 0
+
+
 def pick_path(kind):
     if os.name != 'nt':
         raise RuntimeError('Выбор файла поддерживается только в Windows.')
@@ -183,8 +199,7 @@ def pick_path(kind):
         env = encoded
     script = u'''
 Add-Type -AssemblyName System.Windows.Forms
-$owner = New-Object System.Windows.Forms.Form
-$owner.TopMost = $true
+[System.Windows.Forms.Application]::EnableVisualStyles()
 if ($env:TR3000_DIALOG_KIND -eq 'save') {
   $dialog = New-Object System.Windows.Forms.SaveFileDialog
   $dialog.OverwritePrompt = $true
@@ -197,21 +212,53 @@ if ($env:TR3000_DIALOG_KIND -eq 'save') {
 }
 $dialog.Title = $env:TR3000_DIALOG_TITLE
 $dialog.Filter = 'Translator3000 (*.tr3000.json)|*.tr3000.json|JSON (*.json)|*.json'
-if ($dialog.ShowDialog($owner) -eq [System.Windows.Forms.DialogResult]::OK) {
+$dialog.InitialDirectory = [Environment]::GetFolderPath('Desktop')
+$result = $dialog.ShowDialog()
+if ($result -eq [System.Windows.Forms.DialogResult]::OK) {
   [Console]::OutputEncoding = New-Object System.Text.UTF8Encoding $false
   [Console]::Out.Write($dialog.FileName)
 }
 '''
     if isinstance(script, type(u'')):
         script = script.encode('utf-8')
-    process = subprocess.Popen(
-        ['powershell', '-STA', '-NoProfile', '-Command', '-'],
-        stdin=subprocess.PIPE,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        env=env,
-        creationflags=0x08000000)
-    output, _error = process.communicate(script)
+    import tempfile
+    script_file = tempfile.NamedTemporaryFile(suffix='.ps1', delete=False)
+    try:
+        script_file.write(script)
+        script_file.close()
+        script_name = script_file.name
+        if isinstance(script_name, type(u'')):
+            script_name = script_name.encode('mbcs') if sys.version_info[0] < 3 else script_name
+        hwnd = window_handle()
+        user32 = None
+        try:
+            import ctypes
+            user32 = ctypes.windll.user32
+            if hwnd:
+                user32.ShowWindow(hwnd, 6)
+        except Exception:
+            user32 = None
+        try:
+            process = subprocess.Popen(
+                ['powershell', '-STA', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', script_name],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                env=env,
+                creationflags=0x08000000)
+            output, _error = process.communicate()
+        finally:
+            if user32 is not None and hwnd:
+                user32.ShowWindow(hwnd, 9)
+            try:
+                os.remove(script_file.name)
+            except OSError:
+                pass
+    except Exception:
+        try:
+            os.remove(script_file.name)
+        except Exception:
+            pass
+        raise
     if process.returncode not in (0, None):
         raise RuntimeError('Не удалось открыть окно выбора файла.')
     if not isinstance(output, type(u'')):
@@ -229,14 +276,14 @@ def export_dialog():
         if provider is None:
             set_status('Сначала выберите сервис перевода.')
             return
+        path = pick_path('save')
+        if not path:
+            set_status('Экспорт отменён.')
+            return
         database = snapshot(provider)
         rows = count_rows(database)
         if not rows:
             set_status('Нет перевода для экспорта.')
-            return
-        path = pick_path('save')
-        if not path:
-            set_status('Экспорт отменён.')
             return
         payload = {
             'format': FORMAT_NAME,
