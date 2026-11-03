@@ -35,6 +35,53 @@ init -39 python:
         del _tr3000_transfer_source
         tr3000_transfer.install()
 
+init -38 python:
+    # UI translation is a separate module (tr3000_ui_translate.py) so it can
+    # be edited and tested without touching the main mod files. The loader
+    # injects it as a module exactly like tr3000_openai.py above.
+    if renpy.loadable("tr3000_ui_translate.py"):
+        import sys as _tr3000_sys
+        import types as _tr3000_types
+        with renpy.file("tr3000_ui_translate.py") as _tr3000_ui_tr_file:
+            _tr3000_ui_tr_source = _tr3000_ui_tr_file.read()
+        tr3000_ui_translate = _tr3000_types.ModuleType("tr3000_ui_translate".encode("ascii") if _tr3000_sys.version_info[0] < 3 else "tr3000_ui_translate")
+        tr3000_ui_translate.__file__ = "tr3000_ui_translate.py"
+        _tr3000_sys.modules["tr3000_ui_translate"] = tr3000_ui_translate
+        exec(compile(_tr3000_ui_tr_source, "tr3000_ui_translate.py", "exec"), tr3000_ui_translate.__dict__)
+        del _tr3000_ui_tr_source
+        tr3000_ui_translate.load_settings()
+    # Quick mode toggle (off <-> db_only badge / Alt+1) is likewise a separate
+    # module (tr3000_mode_toggle.py); it switches Translator3000's mode, which
+    # affects dialogue too, so it does not live in the UI translation file.
+    if renpy.loadable("tr3000_mode_toggle.py"):
+        import sys as _tr3000_sys
+        import types as _tr3000_types
+        with renpy.file("tr3000_mode_toggle.py") as _tr3000_mt_file:
+            _tr3000_mt_source = _tr3000_mt_file.read()
+        tr3000_mode_toggle = _tr3000_types.ModuleType("tr3000_mode_toggle".encode("ascii") if _tr3000_sys.version_info[0] < 3 else "tr3000_mode_toggle")
+        tr3000_mode_toggle.__file__ = "tr3000_mode_toggle.py"
+        _tr3000_sys.modules["tr3000_mode_toggle"] = tr3000_mode_toggle
+        exec(compile(_tr3000_mt_source, "tr3000_mode_toggle.py", "exec"), tr3000_mode_toggle.__dict__)
+        del _tr3000_mt_source
+
+init 999 python:
+    # Install last: every other init (including Translator3000 itself) must
+    # already be in place, and patching Text.set_text must not disturb the
+    # game's own init-time text creation.
+    if "tr3000_ui_translate" in globals():
+        tr3000_ui_translate.install()
+        # Feed UI screen strings into Translator3000's prescan: they are
+        # translated and stored in the same provider database as dialogue.
+        # _translator3000.Preparer is the class tr3000_openai.install_prescan
+        # already wraps; wrapping it again here appends the screen strings.
+        try:
+            tr3000_ui_translate.install_prescan(_translator3000.Preparer)
+        except Exception:
+            try:
+                tr3000_ui_translate.install_prescan()
+            except Exception:
+                pass
+
 init -7 python:
     tr3000_ai.install_prescan(_translator3000.Preparer)
     with renpy.file("tr3000_autofit.py") as _tr3000_fit_file:
@@ -44,6 +91,8 @@ init -7 python:
     exec(compile(_tr3000_fit_source, "tr3000_autofit.py", "exec"), tr3000_fit.__dict__)
     if "tr3000_autofit_button" not in config.overlay_screens:
         config.overlay_screens.append("tr3000_autofit_button")
+    if "tr3000_mode_badge" not in config.overlay_screens:
+        config.overlay_screens.append("tr3000_mode_badge")
 
 init 5 python:
     tr3000_fit.install(type(translator3000))
@@ -75,6 +124,36 @@ init 9999:
         size 16
         color "#8888"
         hover_color "#cccc"
+        outlines []
+
+    # Quick mode toggle: badge at the top-right corner (also a button).
+    # Click / Alt+1 switches off <-> db_only through Translator3000's own mode
+    # property, so dialogue and UI text change together. Hidden while any
+    # Translator3000 panel is open (its screen tag hides this one anyway).
+    screen tr3000_mode_badge():
+        zorder 101
+        if "tr3000_mode_toggle" in globals():
+            textbutton "{#notTranslate}" + translator3000.quote(tr3000_mode_toggle.mode_label()):
+                id "tr3000_mode_badge_button"
+                style "tr3000_mode_badge_button"
+                text_style "tr3000_mode_badge_text"
+                xalign 1.0
+                yalign 0.0
+                xoffset -8
+                yoffset 6
+                action Function(tr3000_mode_toggle.toggle_db_only)
+            key "alt_K_1" action Function(tr3000_mode_toggle.toggle_db_only)
+            timer 0.5 action Function(renpy.restart_interaction) repeat True
+
+    style tr3000_mode_badge_button is default:
+        background "#00000066"
+        hover_background "#00000099"
+        padding (8, 3)
+
+    style tr3000_mode_badge_text is default:
+        size 15
+        color "#cccc"
+        hover_color "#ffff"
         outlines []
 
     screen translator3000_openai_keys():
@@ -221,6 +300,14 @@ init 9999:
                 text tr3000_ui.mark('API получает файл JSON целиком. ChatGPT получает тот же пакет целиком.')
                 text tr3000_ui.mark('Ответ проверяется до последней строки. При обрыве пакет делится автоматически.')
                 text tr3000_ui.mark('В живом переводе передаются доступные реплики. Для всей игры запустите предварительное сканирование.')
+                if "tr3000_ui_translate" in globals():
+                    textbutton tr3000_ui.mark('Переводить интерфейс игры (меню, настройки, подсказки)'):
+                        style "translator3000_check_button"
+                        text_style "translator3000_button_text"
+                        selected tr3000_ui_translate.state.enabled
+                        action Function(tr3000_ui_translate.set_enabled, not tr3000_ui_translate.state.enabled)
+                    text "{#notTranslate}" + translator3000.quote(tr3000_ui.translate(tr3000_ui_translate.state.status))
+                    timer 0.5 action Function(renpy.restart_interaction) repeat True
             window:
                 has vbox
                 label tr3000_ui.mark('Проверка подключения')
