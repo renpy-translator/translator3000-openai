@@ -9,9 +9,9 @@
   <a href="README.es.md">Español</a>
 </p>
 
-> Ren'Py ゲーム向け **Translator3000** の拡張版です。OpenAI / ChatGPT 翻訳、ゲーム UI（メニュー・設定）の翻訳、ゲーム内でのモード即時切り替え、翻訳のエクスポート/インポートを追加し、すべてを 1 つの `.rpa` ファイルにまとめました。
+> Ren'Py ゲーム向け **Translator3000** の拡張版です。OpenAI / ChatGPT 翻訳、ゲーム UI（メニュー・設定）の翻訳、ゲーム内でのモード即時切り替え、翻訳のエクスポート/インポートを追加し、2 種類の単体ファイルで提供します：単独版 `Translator3000-openai.rpa`（オリジナル + 拡張）と、オリジナル `Translator3000.rpa` の横に置く小さな `Translator3000-openai-addon.rpa` です。
 
-Translator3000 はもともと内蔵サービスで Ren'Py ゲームの台詞をリアルタイム翻訳します。本プロジェクトはオリジナルの Translator3000 をそのまま保持し、その上に新機能を重ねます。別のゲームで使うには、**1 ファイル**をそのゲームの `game` フォルダにコピーするだけです。
+Translator3000 はもともと内蔵サービスで Ren'Py ゲームの台詞をリアルタイム翻訳します。本プロジェクトはオリジナルの Translator3000 をそのまま保持し、その上に新機能を重ねます。別のゲームで使うには、`.rpa` ファイル 1 つ（同梱済みの単独版、またはオリジナル `Translator3000.rpa` の横に置くアドオン）をそのゲームの `game` フォルダにコピーするだけです。
 
 ---
 
@@ -54,7 +54,8 @@ Translator3000 はもともと内蔵サービスで Ren'Py ゲームの台詞を
 ## 🚀 インストール
 
 1. パッケージをビルドするか（[ビルド](#-ビルド)参照）、ビルド済みの `build/Translator3000-openai.rpa` を使います。
-2. `Translator3000-openai.rpa` をゲームの `game` フォルダにコピーします。
+2a. または `Translator3000-openai.rpa` をゲームの `game` フォルダにコピーします — オリジナルの Translator3000 がすでに含まれています。
+2b. または、ゲームにオリジナルの `Translator3000.rpa` がすでにある場合は、`build/Translator3000-openai-addon.rpa` をその横にコピーしてください：アドオンがオリジナルの上に新機能を追加します。
 3. ゲームを起動し、**Ctrl+`** で Translator3000 パネルを開きます。
 
 > オリジナルの `Translator3000.rpa` や、単体の `.py` / `.rpy` ファイルをゲームにコピー**しないでください**。単体ファイルは RPA 内のファイルより優先されてしまいます。Ren'Py は `game` フォルダ内のすべての `.rpa` を自動で読み込みます。
@@ -115,13 +116,15 @@ vladya's projects database/translator3000/_translator3000_ui.json
 
 ## 🔧 ビルド
 
-ソースを変更したら、パッケージを再ビルドします：
+MOD のソースは `src/` にあります。変更したら、パッケージを再ビルドします：
 
 ```text
-python build_rpa.py
+python build_rpa.py          # full：オリジナル + アドオン -> build/Translator3000-openai.rpa
+python build_rpa.py addon    # アドオンのみ               -> build/Translator3000-openai-addon.rpa
+python build_rpa.py all      # 両方
 ```
 
-オリジナルの `Translator3000.rpa` と以下の MOD ファイルを統合し、`build/Translator3000-openai.rpa` を出力します：
+MOD のソースは `src/` にあります。フルビルドはオリジナルの `Translator3000.rpa` と以下の MOD ファイルを統合します；アドオンビルドは MOD ファイルだけを詰めるため、お持ちのオリジナル `Translator3000.rpa` の横に `Translator3000-openai-addon.rpa` をコピーしてください：
 
 - `zzz_translator3000_openai.rpyc`
 - `tr3000_openai.py`

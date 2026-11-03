@@ -9,9 +9,9 @@
   <a href="README.es.md">Español</a>
 </p>
 
-> Bản mở rộng của **Translator3000** cho game Ren'Py: thêm dịch bằng OpenAI / ChatGPT, dịch giao diện game (menu & cài đặt), chuyển mode nhanh trong game, và xuất/nhập bản dịch — tất cả gói trong một file `.rpa` duy nhất.
+> Bản mở rộng của **Translator3000** cho game Ren'Py: thêm dịch bằng OpenAI / ChatGPT, dịch giao diện game (menu & cài đặt), chuyển mode nhanh trong game, và xuất/nhập bản dịch — Phát hành theo 2 dạng file đơn: `Translator3000-openai.rpa` độc lập (Translator3000 gốc + phần mở rộng) hoặc `Translator3000-openai-addon.rpa` nhỏ gọn, thả cạnh `Translator3000.rpa` gốc.
 
-Translator3000 vốn đã dịch hội thoại game Ren'Py theo thời gian thực bằng các dịch vụ tích hợp sẵn. Dự án này giữ nguyên Translator3000 gốc và thêm một lớp tính năng mới lên trên. Muốn dùng cho game khác, chỉ cần copy **một file** vào thư mục `game` của game đó.
+Translator3000 vốn đã dịch hội thoại game Ren'Py theo thời gian thực bằng các dịch vụ tích hợp sẵn. Dự án này giữ nguyên Translator3000 gốc và thêm một lớp tính năng mới lên trên. Muốn dùng cho game khác, chỉ cần copy 1 file `.rpa` (bản độc lập đã gộp sẵn, hoặc bản addon đặt cạnh `Translator3000.rpa` gốc) vào thư mục `game` của game đó.
 
 ---
 
@@ -54,7 +54,8 @@ Mọi thứ của Translator3000 gốc — panel Ctrl+`, các mode Off / Prescan
 ## 🚀 Cài đặt
 
 1. Đóng gói (xem [Đóng gói lại](#-đóng-gói-lại)) hoặc lấy sẵn `build/Translator3000-openai.rpa`.
-2. Copy `Translator3000-openai.rpa` vào thư mục `game` của game.
+2a. Hoặc copy `Translator3000-openai.rpa` vào thư mục `game` của game — bản này đã gộp sẵn Translator3000 gốc.
+2b. Hoặc, nếu game đã có `Translator3000.rpa` gốc, copy `build/Translator3000-openai-addon.rpa` vào cạnh nó: addon cộng thêm tính năng mới lên trên bản gốc đó.
 3. Mở game, nhấn **Ctrl+`** để mở panel Translator3000.
 
 > **Không** copy kèm `Translator3000.rpa` gốc hay các file `.py` / `.rpy` rời vào game — file rời sẽ đè lên file trong RPA. Ren'Py tự nạp mọi file `.rpa` trong thư mục `game`.
@@ -115,13 +116,15 @@ vladya's projects database/translator3000/_translator3000_ui.json
 
 ## 🔧 Đóng gói lại
 
-Sau khi sửa các file nguồn, tạo lại file RPA:
+File nguồn của mod nằm trong `src/`. Sau khi sửa chúng, tạo lại file RPA:
 
 ```text
-python build_rpa.py
+python build_rpa.py          # full: gốc + addon -> build/Translator3000-openai.rpa
+python build_rpa.py addon    # chỉ addon        -> build/Translator3000-openai-addon.rpa
+python build_rpa.py all      # cả hai
 ```
 
-Lệnh này gộp `Translator3000.rpa` gốc với các file mod dưới đây và ghi `build/Translator3000-openai.rpa`:
+File nguồn của mod nằm trong `src/`. Bản full gộp `Translator3000.rpa` gốc với các file mod dưới đây; bản addon chỉ đóng các file mod, nên hãy copy `Translator3000-openai-addon.rpa` vào cạnh `Translator3000.rpa` gốc bạn đã có:
 
 - `zzz_translator3000_openai.rpyc`
 - `tr3000_openai.py`

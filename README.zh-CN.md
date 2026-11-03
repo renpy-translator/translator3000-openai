@@ -9,9 +9,9 @@
   <a href="README.es.md">Español</a>
 </p>
 
-> **Translator3000** 的扩展版，面向 Ren'Py 游戏：新增 OpenAI / ChatGPT 翻译、游戏界面（菜单与设置）翻译、游戏内模式快速切换，以及翻译的导入/导出——全部打包在一个 `.rpa` 文件中。
+> **Translator3000** 的扩展版，面向 Ren'Py 游戏：新增 OpenAI / ChatGPT 翻译、游戏界面（菜单与设置）翻译、游戏内模式快速切换，以及翻译的导入/导出——提供两种单文件形式：独立的 `Translator3000-openai.rpa`（原版 + 扩展），或小巧的 `Translator3000-openai-addon.rpa`，放到原版 `Translator3000.rpa` 旁边即可。
 
-Translator3000 本身已能用其内置服务实时翻译 Ren'Py 游戏对白。本项目完整保留原版 Translator3000，只在其之上叠加新功能。换到其他游戏时，只需把**一个文件**复制进游戏的 `game` 文件夹。
+Translator3000 本身已能用其内置服务实时翻译 Ren'Py 游戏对白。本项目完整保留原版 Translator3000，只在其之上叠加新功能。换到其他游戏时，只需把 1 个 `.rpa` 文件（已合并的独立版，或放在原版 `Translator3000.rpa` 旁边的扩展版）复制进游戏的 `game` 文件夹。
 
 ---
 
@@ -54,7 +54,8 @@ Translator3000 本身已能用其内置服务实时翻译 Ren'Py 游戏对白。
 ## 🚀 安装
 
 1. 构建软件包（见[构建](#-构建)），或直接使用预构建的 `build/Translator3000-openai.rpa`。
-2. 把 `Translator3000-openai.rpa` 复制到游戏的 `game` 文件夹。
+2a. 或者把 `Translator3000-openai.rpa` 复制到游戏的 `game` 文件夹——它已内置原版 Translator3000。
+2b. 或者，如果游戏已有原版 `Translator3000.rpa`，把 `build/Translator3000-openai-addon.rpa` 复制到它旁边：扩展会在原版之上添加新功能。
 3. 启动游戏，按 **Ctrl+`** 打开 Translator3000 面板。
 
 > **请勿**同时把原版 `Translator3000.rpa` 或散装的 `.py` / `.rpy` 文件复制进游戏——散装文件会覆盖 RPA 内的文件。Ren'Py 会自动加载 `game` 文件夹中的每个 `.rpa`。
@@ -115,13 +116,15 @@ vladya's projects database/translator3000/_translator3000_ui.json
 
 ## 🔧 构建
 
-修改源码后，重新构建软件包：
+MOD 源码位于 `src/`。修改后，重新构建软件包：
 
 ```text
-python build_rpa.py
+python build_rpa.py          # full：原版 + 扩展 -> build/Translator3000-openai.rpa
+python build_rpa.py addon    # 仅扩展          -> build/Translator3000-openai-addon.rpa
+python build_rpa.py all      # 两者都构建
 ```
 
-该命令把原版 `Translator3000.rpa` 与下列 MOD 文件合并，输出 `build/Translator3000-openai.rpa`：
+MOD 源码位于 `src/`。完整构建把原版 `Translator3000.rpa` 与下列 MOD 文件合并；扩展版构建只打包 MOD 文件，因此请把 `Translator3000-openai-addon.rpa` 复制到你已有的原版 `Translator3000.rpa` 旁边：
 
 - `zzz_translator3000_openai.rpyc`
 - `tr3000_openai.py`

@@ -9,9 +9,9 @@
   <a href="README.es.md">Español</a>
 </p>
 
-> An extension of **Translator3000** for Ren'Py games that adds OpenAI / ChatGPT translation, game UI (menu & settings) translation, an in-game mode toggle, and translation export/import — all packaged into a single `.rpa` file.
+> An extension of **Translator3000** for Ren'Py games that adds OpenAI / ChatGPT translation, game UI (menu & settings) translation, an in-game mode toggle, and translation export/import — It comes in two single-file variants: a standalone `Translator3000-openai.rpa` (stock Translator3000 + add-on) or a small `Translator3000-openai-addon.rpa` you drop next to a stock `Translator3000.rpa`.
 
-Translator3000 already translates Ren'Py game dialogue in real time with its built-in services. This project keeps the original Translator3000 intact and layers new features on top of it. To use it in another game, copy **one file** into the game's `game` folder.
+Translator3000 already translates Ren'Py game dialogue in real time with its built-in services. This project keeps the original Translator3000 intact and layers new features on top of it. To use it in another game, copy one `.rpa` file (the bundled standalone build, or the add-on next to a stock `Translator3000.rpa`) into the game's `game` folder.
 
 ---
 
@@ -54,7 +54,8 @@ Everything from stock Translator3000 — the Ctrl+` panel, the Off / Prescan / D
 ## 🚀 Installation
 
 1. Build the package (see [Building](#-building)) or take the prebuilt `build/Translator3000-openai.rpa`.
-2. Copy `Translator3000-openai.rpa` into the game's `game` folder.
+2a. Either copy `Translator3000-openai.rpa` into the game's `game` folder — it already bundles the stock Translator3000.
+2b. Or, if the game already has a stock `Translator3000.rpa`, copy `build/Translator3000-openai-addon.rpa` next to it instead: the add-on adds the new features on top of the stock archive.
 3. Launch the game and press **Ctrl+`** to open the Translator3000 panel.
 
 > **Do not** also copy the stock `Translator3000.rpa` or loose `.py` / `.rpy` files into the game — loose files override files inside the RPA. Ren'Py automatically loads every `.rpa` in the `game` folder.
@@ -115,13 +116,15 @@ Set `ui_debug` to `true` to write a UI translation log (`_translator3000_ui_debu
 
 ## 🔧 Building
 
-After editing the sources, rebuild the package:
+Mod sources live in `src/`. After editing them, rebuild the package:
 
 ```text
-python build_rpa.py
+python build_rpa.py          # full: stock + add-on -> build/Translator3000-openai.rpa
+python build_rpa.py addon    # add-on only       -> build/Translator3000-openai-addon.rpa
+python build_rpa.py all      # both
 ```
 
-This merges the stock `Translator3000.rpa` with the mod files below and writes `build/Translator3000-openai.rpa`:
+Mod sources live in `src/`. The full build merges the stock `Translator3000.rpa` with the mod files below; the add-on build packs only the mod files, so copy `Translator3000-openai-addon.rpa` next to a stock `Translator3000.rpa` you already have:
 
 - `zzz_translator3000_openai.rpyc`
 - `tr3000_openai.py`
