@@ -143,7 +143,12 @@ init 9999:
                 yoffset 6
                 action Function(tr3000_mode_toggle.toggle_db_only)
             key "alt_K_1" action Function(tr3000_mode_toggle.toggle_db_only)
-            timer 0.5 action Function(renpy.restart_interaction) repeat True
+            # No periodic refresh timer here on purpose: a repeating
+            # restart_interaction re-evaluates every screen (including say)
+            # twice a second and makes slow platforms re-render dialogue
+            # constantly. The label still stays current - toggling calls
+            # restart_interaction itself, the Ctrl+` panel restarts the
+            # statement, and every dialogue line is a new interaction.
 
     style tr3000_mode_badge_button is default:
         background "#00000066"
